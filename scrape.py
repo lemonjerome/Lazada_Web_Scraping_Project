@@ -17,45 +17,102 @@ for i in range(1, 103):
     base_url = f'https://www.lazada.com.ph/tag/monitor/?catalog_redirect_tag=true&page={i}&q=monitor&spm=a2o4l.home-ph.search.d_go'
     base_page = requests.get(base_url, headers=headers)
     base_soup = BeautifulSoup(BeautifulSoup(base_page.content, "html.parser").prettify(), "html.parser")
-    # print(base_soup)
     products = base_soup.find_all('div', class_='Bm3ON')
 
-    for product in products:
-        title = product.find('div', class_='RfADt').find('a').get_text().strip()
-        print(f"{title}, page {i}")
+    try: 
+        for product in products:
+            try:
+                title = product.find('div', class_='RfADt').find('a').get_text().strip()
+            except AttributeError:
+                continue
 
-        for word in words_to_test:
-            if word in title:
-                word_found = True
-                break
-        
-        if word_found:
-            continue
+            for word in words_to_test:
+                if word in title:
+                    word_found = True
+                    break
+            
+            if word_found:
+                continue
+            try:
+                price = product.find("span", class_= "ooOxS").get_text()[1:].strip()
+            except AttributeError:
+                price = None
 
-        price = product.find("span", class_= "ooOxS").get_text()[1:].strip()
-        units_sold = product.find("span", class_= "_1cEkb").find("span").get_text().split(" ")[0].strip()
-        percent_off = product.find("span", class_="IcOsH").get_text().split(" ")[0][:-1].strip()
-        location = product.find("span", class_="oa6ri ").get_text().strip()
+            try:
+                units_sold = product.find("span", class_= "_1cEkb").find("span").get_text().split(" ")[0].strip()
+            except AttributeError:
+                units_sold = None   
+            
+            try:
+                percent_off = product.find("span", class_="IcOsH").get_text().split(" ")[0][:-1].strip()
+            except AttributeError:
+                percent_off = None   
+            
+            try:
+                location = product.find("span", class_="oa6ri ").get_text().strip()
+            except AttributeError:
+                location = None
+            
+            try:
+                product_url = product.find('div', class_='RfADt').find('a')['href']
+            except AttributeError:
+                product_url = None
+            
+            try:
+                product_page = requests.get(product_url, headers=headers)
+            except AttributeError:
+                product_page = None
+            
+            try:
+                product_soup = BeautifulSoup(BeautifulSoup(product_page.content, "html.parser").prettify(), "html.parser")
+            except AttributeError:
+                product_soup = None
 
-        product_url = product.find('div', class_='RfADt').find('a')['href']
-        product_page = requests.get(product_url, headers=headers)
-        product_soup = BeautifulSoup(BeautifulSoup(product_page.content, "html.parser").prettify(), "html.parser")
+            try:
+                ratings = product_soup.find("div", class_="mod-rating")
+            except AttributeError:
+                ratings = None
 
-        ratings = product_soup.find("div", class_="mod-rating")
+            try:
+                average_rating = ratings.find("span", class_="score-average").get_text().strip()
+            except AttributeError:
+                average_rating = None
 
-        average_rating = ratings.find("span", class_="score-average").get_text().strip()
+            try:
+                ratings_list = ratings.find("div", class_="detail").find_all("li")
+            except AttributeError:
+                ratings_list = None
 
-        ratings_list = ratings.find("div", class_="detail").find_all("li")
+            try:
+                five_stars = ratings_list[0].find("span", class_="percent").get_text().strip()
+            except AttributeError:
+                five_stars = None
 
-        five_stars = ratings_list[0].find("span", class_="percent").get_text().strip()
-        four_stars = ratings_list[1].find("span", class_="percent").get_text().strip()
-        three_stars = ratings_list[2].find("span", class_="percent").get_text().strip()
-        two_stars = ratings_list[3].find("span", class_="percent").get_text().strip()
-        one_star = ratings_list[4].find("span", class_="percent").get_text().strip()
+            try:
+                four_stars = ratings_list[1].find("span", class_="percent").get_text().strip()
+            except AttributeError:
+                four_stars = None
 
-        row = [title, price, units_sold, percent_off, location, average_rating, five_stars, four_stars, three_stars, two_stars, one_star]
+            try:
+                three_stars = ratings_list[2].find("span", class_="percent").get_text().strip()
+            except AttributeError:
+                three_stars = None
+            
+            try: 
+                two_stars = ratings_list[3].find("span", class_="percent").get_text().strip()
+            except AttributeError:
+                two_stars = None
+            
+            try:
+                one_star = ratings_list[4].find("span", class_="percent").get_text().strip()
+            except AttributeError:
+                one_star = None
 
-        with open('Lazada_scrape.csv', 'a+', newline='', encoding='UTF8') as f:
-            writer = csv.writer(f)
-            writer.writerow(row)
+            row = [title, price, units_sold, percent_off, location, average_rating, five_stars, four_stars, three_stars, two_stars, one_star]
+
+            with open('Lazada_scrape.csv', 'a+', newline='', encoding='UTF8') as f:
+                writer = csv.writer(f)
+                writer.writerow(row)
+    except AttributeError:
+        pass
 
