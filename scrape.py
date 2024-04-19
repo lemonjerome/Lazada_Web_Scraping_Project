@@ -6,7 +6,7 @@ words_to_test = ['stand', 'riser', 'mount', 'bracket', 'rack']
 
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15"}
 
-csv_header = ["title", "price", "units_sold", "percent_off", "location", "average_rating", "five_stars", "four_stars", "three_stars", "two_stars", "one_star"]
+csv_header = ["title", "price", "units_sold", "reviews", "percent_off", "location", "average_rating", "five_stars", "four_stars", "three_stars", "two_stars", "one_star"]
 
 with open('Lazada_scrape.csv', 'w', newline='', encoding='UTF8') as f:
     writer = csv.writer(f)
@@ -41,7 +41,12 @@ for i in range(1, 103):
             try:
                 units_sold = product.find("span", class_= "_1cEkb").find("span").get_text().split(" ")[0].strip()
             except AttributeError:
-                units_sold = None   
+                units_sold = None  
+
+            try:
+                reviews = product.find("span", class_= "qzqFw").get_text().translate(str.maketrans('', '', "() "))
+            except AttributeError:
+                reviews = None  
             
             try:
                 percent_off = product.find("span", class_="IcOsH").get_text().split(" ")[0][:-1].strip()
@@ -108,7 +113,7 @@ for i in range(1, 103):
             except AttributeError:
                 one_star = None
 
-            row = [title, price, units_sold, percent_off, location, average_rating, five_stars, four_stars, three_stars, two_stars, one_star]
+            row = [title, price, units_sold, reviews, percent_off, location, average_rating, five_stars, four_stars, three_stars, two_stars, one_star]
 
             with open('Lazada_scrape.csv', 'a+', newline='', encoding='UTF8') as f:
                 writer = csv.writer(f)
